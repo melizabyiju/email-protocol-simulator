@@ -16,7 +16,7 @@
             <p>Email Communication Using SMTP, POP3 and IMAP • 5-Member Role Play Demonstration</p>
         </header>
 
-        <!-- Audience Live Narration Banner (Single clean strip) -->
+        <!-- Audience Live Narration Banner -->
         <div class="audience-strip">
             <span class="audience-member-badge" id="memberBadge">Ready</span>
             <span class="audience-action-text" id="actionText">Click "Send Email" to begin the demonstration.</span>
@@ -40,7 +40,7 @@
             <div class="control-group">
                 <label>
                     <input type="checkbox" id="rawLogToggle" checked>
-                    Show Raw SMTP Log
+                    Show Protocol Log
                 </label>
             </div>
 
@@ -54,14 +54,14 @@
             <div class="control-group" id="pop3OptionGroup" style="display: none;">
                 <label>
                     <input type="checkbox" id="pop3DeleteToggle" checked>
-                    POP3 Delete on Server
+                    Delete on Server
                 </label>
             </div>
 
             <div class="control-group">
                 <label for="speedSlider">Speed:</label>
                 <input type="range" id="speedSlider" class="speed-slider" min="1" max="5" value="2">
-                <span id="speedValue" style="font-size: 0.85em; font-weight: 700; color: #495057;">2x</span>
+                <span id="speedValue" style="font-size: 0.95em; font-weight: 800; color: #1e293b;">2x</span>
             </div>
         </div>
 
@@ -88,36 +88,36 @@
                     </div>
                     <div class="form-group">
                         <label for="message">Message:</label>
-                        <textarea id="message" required>This is a demonstration of how email flows through the internet using SMTP, MTA queues, and IMAP/POP3 protocols.</textarea>
+                        <textarea id="message" required>Demonstrating how email flows across SMTP, routers, and POP3/IMAP.</textarea>
                     </div>
                     <div class="checkbox-group">
                         <input type="checkbox" id="hasAttachment">
-                        <label for="hasAttachment">Include attachment (simulated)</label>
+                        <label for="hasAttachment">Include attachment</label>
                     </div>
                 </form>
-
-                <div class="info-box">
-                    <h3>📚 Member 1: Sender (UA)</h3>
-                    <p><strong>Role:</strong> User Agent composes the message, creates RFC 5322 headers, and uses <strong>SMTP</strong> to push mail to the outgoing server.</p>
-                </div>
             </div>
 
-            <!-- Middle: Network Pipeline Panel -->
+            <!-- Middle: Network / Mail Pipeline (Enlarged Focus) -->
             <div class="panel">
                 <h2>
-                    <span>🌐 Network / Mail Pipeline</span>
+                    <span>🌐 Network / Mail Pipeline Traversal</span>
                     <span class="member-subtag">Members 2, 3 &amp; 4</span>
                 </h2>
 
                 <div class="network-pipeline">
                     <div class="pipeline-path"></div>
-                    <div class="envelope" id="envelope">📧</div>
+                    <div class="envelope" id="envelope">
+                        <span id="envelopeIcon">✉️</span>
+                        <span class="envelope-badge" id="envelopeBadge">MSG</span>
+                    </div>
+
                     <div class="pipeline-nodes">
                         <!-- Node 1: Sender (Member 1) -->
                         <div class="node" id="node-sender">
                             <span class="node-role-tag">Member 1</span>
                             <div class="node-icon">📤</div>
                             <div class="node-label">Sender<br>Client</div>
+                            <div class="status-bubble green" id="status-sender">MSG: SENT</div>
                         </div>
 
                         <!-- Node 2: SMTP Outgoing MTA (Member 2) -->
@@ -149,13 +149,14 @@
                             <span class="node-role-tag">Member 5</span>
                             <div class="node-icon">📬</div>
                             <div class="node-label">Receiver<br>Client</div>
+                            <div class="status-bubble green" id="status-receiver">MSG: RECEIVED</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Live Protocol Terminal -->
                 <div class="smtp-log" id="smtpLog">
-                    <div class="info"># Terminal ready. Click "Send Email" to start simulation...</div>
+                    <div class="info"># Protocol log ready. Click "Send Email" to start simulation...</div>
                 </div>
 
                 <!-- 5-Step Timeline -->
@@ -194,7 +195,7 @@
                     <div class="mailbox">
                         <h3>
                             <span>📮 Server Mailbox</span>
-                            <span style="font-size: 0.75em; color: #6c757d;" id="serverStatusLabel">Empty</span>
+                            <span style="font-size: 0.8em; color: #64748b;" id="serverStatusLabel">Empty</span>
                         </h3>
                         <div id="serverMailbox">
                             <div class="empty-msg">No mail on server</div>
@@ -210,11 +211,6 @@
                             <div class="empty-msg">Inbox empty</div>
                         </div>
                     </div>
-                </div>
-
-                <div class="info-box" id="protocolInfo">
-                    <h3>📚 IMAP (RFC 3501)</h3>
-                    <p><strong>Key Feature:</strong> Messages stay on the server. Multiple devices can access and synchronize status (e.g. read/unread).</p>
                 </div>
             </div>
         </div>

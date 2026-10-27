@@ -31,29 +31,28 @@ const elements = {
     speedValue: document.getElementById('speedValue'),
     emailForm: document.getElementById('emailForm'),
     envelope: document.getElementById('envelope'),
+    envelopeBadge: document.getElementById('envelopeBadge'),
+    statusSender: document.getElementById('status-sender'),
+    statusReceiver: document.getElementById('status-receiver'),
     smtpLog: document.getElementById('smtpLog'),
     serverMailbox: document.getElementById('serverMailbox'),
     clientMailbox: document.getElementById('clientMailbox'),
     serverStatusLabel: document.getElementById('serverStatusLabel'),
-    protocolInfo: document.getElementById('protocolInfo'),
     protocolLabel: document.getElementById('protocolLabel'),
     syncIndicator: document.getElementById('syncIndicator'),
     memberBadge: document.getElementById('memberBadge'),
     actionText: document.getElementById('actionText')
 };
 
-// Node IDs for animation
-const nodeIds = ['sender', 'mta-out', 'internet', 'mta-in', 'receiver'];
-
 // Audience Narration Info per Step
 const stepInfo = {
     0: {
         member: "Member 1: Sender (Alice)",
-        text: "Composing email and submitting to Outgoing SMTP server via port 587 (Push protocol)."
+        text: "Message Sent! Submitting email via SMTP on port 587 (Push protocol)."
     },
     1: {
         member: "Member 2: SMTP Server",
-        text: "Verifying credentials, storing in outgoing queue spool, and querying DNS for recipient MX record."
+        text: "Authenticating credentials, queuing message, querying DNS for recipient MX record."
     },
     2: {
         member: "Member 3: Internet & Network",
@@ -65,7 +64,7 @@ const stepInfo = {
     },
     4: {
         member: "Member 5: Receiver (Bob)",
-        text: "Client retrieves email using IMAP (message stays on server) or POP3 (downloads to local machine)."
+        text: "Message Received! Retrieved via IMAP (remains on server) or POP3 (downloaded to device)."
     }
 };
 
@@ -92,18 +91,6 @@ function handleProtocolChange(e) {
     state.protocol = e.target.value;
     elements.protocolLabel.textContent = state.protocol.toUpperCase();
     elements.pop3OptionGroup.style.display = state.protocol === 'pop3' ? 'flex' : 'none';
-
-    if (state.protocol === 'imap') {
-        elements.protocolInfo.innerHTML = `
-            <h3>📚 IMAP (RFC 3501)</h3>
-            <p><strong>Key Feature:</strong> Messages stay on the server. Multiple devices can access and synchronize status (e.g. read/unread).</p>
-        `;
-    } else {
-        elements.protocolInfo.innerHTML = `
-            <h3>📚 POP3 (RFC 1939)</h3>
-            <p><strong>Key Feature:</strong> Downloads messages to local client device. Typically removes message from server after retrieval.</p>
-        `;
-    }
 }
 
 // Handle Speed Slider
@@ -198,13 +185,19 @@ function resetVisuals() {
     document.querySelectorAll('.timeline-step').forEach(t => t.classList.remove('active'));
 
     elements.envelope.style.left = '4%';
+    elements.envelopeBadge.textContent = 'MSG';
+    elements.statusSender.textContent = 'MSG: SENT';
+    elements.statusSender.className = 'status-bubble green';
+    elements.statusReceiver.textContent = 'MSG: RECEIVED';
+    elements.statusReceiver.className = 'status-bubble green';
+
     elements.serverMailbox.innerHTML = '<div class="empty-msg">No mail on server</div>';
     elements.clientMailbox.innerHTML = '<div class="empty-msg">Inbox empty</div>';
     elements.serverStatusLabel.textContent = 'Empty';
 }
 
 function clearLogs() {
-    elements.smtpLog.innerHTML = '<div class="info"># Terminal ready...</div>';
+    elements.smtpLog.innerHTML = '<div class="info"># Protocol log ready...</div>';
 }
 
 // Main Step-by-Step Flow
@@ -232,7 +225,7 @@ async function runPipeline() {
         highlightNode(step.name);
 
         // Move Envelope
-        moveEnvelope(stepIndex, steps.length);
+        moveEnvelope(stepIndex);
 
         // Execute Protocol Events for this step
         await step.action();
@@ -256,7 +249,7 @@ async function runPipeline() {
 }
 
 // Move Envelope smoothly across the nodes
-function moveEnvelope(stepIndex, totalSteps) {
+function moveEnvelope(stepIndex) {
     const percentages = ['4%', '27%', '50%', '73%', '96%'];
     elements.envelope.style.left = percentages[stepIndex] || '4%';
 }
@@ -294,17 +287,19 @@ function wait(ms) {
 }
 
 // ============================================================================
-// STEP 1: Sender / User Agent (Member 1)
+// STEP 1: Sender / User Agent (Member 1) - MSG: SENT
 // ============================================================================
 async function step1Sender() {
-    addLog(`Connecting to Outgoing SMTP Server on port ${state.tlsEnabled ? '587 (TLS)' : '25'}...`, 'info');
-    await wait(400 / state.speed);
+    elements.statusSender.classList.add('visible');
+    elements.envelopeBadge.textContent = 'MSG: SENT';
+
+    addLog(`[SENDER] Connecting to Outgoing SMTP Server on port ${state.tlsEnabled ? '587 (TLS)' : '25'}...`, 'info');
+    await wait(350 / state.speed);
     addLog('220 smtp.example.com ESMTP Postfix Ready');
     await wait(300 / state.speed);
     addLog('EHLO client.example.com', 'command');
     await wait(300 / state.speed);
     addLog('250-smtp.example.com Hello client.example.com');
-    addLog('250-SIZE 35882577');
     if (state.tlsEnabled) {
         addLog('250-STARTTLS');
         await wait(250 / state.speed);
@@ -313,7 +308,7 @@ async function step1Sender() {
         addLog('220 Ready to start TLS');
         addLog('[TLS Handshake: TLSv1.3 AES-256-GCM completed]', 'net');
     }
-    addLog('250 OK');
+    addLog('250 OK (Ready for submission)');
 }
 
 // ============================================================================
@@ -323,6 +318,7 @@ async function step2SMTP() {
     const bubble = document.getElementById('status-mta-out');
     bubble.textContent = 'Authenticating';
     bubble.classList.add('visible');
+    elements.envelopeBadge.textContent = 'MSG: QUEUED';
 
     await wait(300 / state.speed);
     addLog(`AUTH PLAIN ${btoa('\0alice\0password')}`, 'command');
@@ -348,12 +344,10 @@ async function step2SMTP() {
     addLog(`Subject: ${state.message.subject}`);
     if (state.message.hasAttachment) {
         addLog('Content-Type: multipart/mixed; boundary="boundary123"');
-        addLog('--boundary123');
-        addLog('Content-Type: text/plain');
+        addLog('--boundary123 (Content-Type: text/plain)');
         addLog(state.message.message);
-        addLog('--boundary123');
-        addLog('Content-Type: application/pdf; filename="document.pdf"');
-        addLog('[Base64 Encoded Attachment Payload]');
+        addLog('--boundary123 (Content-Type: application/pdf)');
+        addLog('[Base64 PDF Attachment Stream]');
         addLog('--boundary123--');
     } else {
         addLog(`Message: ${state.message.message}`);
@@ -361,16 +355,17 @@ async function step2SMTP() {
     addLog('.', 'command');
 
     await wait(350 / state.speed);
-    addLog('250 Message accepted for delivery (Queued)');
+    addLog('250 2.0.0 OK: Queued in Spool');
     bubble.textContent = 'Queued';
 
     await wait(400 / state.speed);
     bubble.textContent = 'DNS MX Lookup';
     bubble.classList.add('processing');
     const recipientDomain = state.message.to.split('@')[1] || 'example.com';
-    addLog(`[DNS] Querying MX record for domain '${recipientDomain}'...`, 'net');
+    addLog(`[DNS] Querying MX record for '${recipientDomain}'...`, 'net');
     await wait(400 / state.speed);
     addLog(`[DNS] MX Found: mail.${recipientDomain} (Priority 10)`, 'net');
+    bubble.textContent = `MX: mail.${recipientDomain}`;
 }
 
 // ============================================================================
@@ -378,12 +373,14 @@ async function step2SMTP() {
 // ============================================================================
 async function step3Internet() {
     const bubble = document.getElementById('status-internet');
-    bubble.textContent = 'Routing';
+    bubble.textContent = 'TCP Handshake';
     bubble.classList.add('visible', 'processing');
+    elements.envelopeBadge.textContent = 'MSG: IN TRANSIT';
 
     addLog('[TCP] 3-Way Handshake SYN -> SYN-ACK -> ACK [ESTABLISHED]', 'net');
     await wait(400 / state.speed);
-    addLog('[IP] Packets routed across network hops to recipient server', 'net');
+    bubble.textContent = 'Routing IP Packets';
+    addLog('[IP] Forwarding packets across routers to recipient mail server', 'net');
     await wait(400 / state.speed);
     addLog('220 mail.example.com ESMTP Incoming Relay Ready');
     await wait(300 / state.speed);
@@ -397,7 +394,7 @@ async function step3Internet() {
     addLog('DATA', 'command');
     addLog('354 Send data');
     addLog('.', 'command');
-    addLog('250 Message accepted for local spool');
+    addLog('250 2.0.0 Message accepted for local spool');
 }
 
 // ============================================================================
@@ -407,6 +404,7 @@ async function step4RecipientServer() {
     const bubble = document.getElementById('status-mta-in');
     bubble.textContent = 'Validating';
     bubble.classList.add('visible', 'processing');
+    elements.envelopeBadge.textContent = 'MSG: DELIVERED';
 
     addLog('[MTA] Validating recipient mailbox address...', 'info');
     await wait(400 / state.speed);
@@ -414,26 +412,29 @@ async function step4RecipientServer() {
     await wait(400 / state.speed);
     addLog('[Delivery Agent] Writing email to /var/mail/bob', 'info');
 
-    bubble.textContent = 'Delivered';
+    bubble.textContent = 'Delivered to Spool';
     bubble.classList.remove('processing');
-    bubble.classList.add('delivered');
+    bubble.classList.add('green');
 
     // Add to Server Mailbox
     elements.serverMailbox.innerHTML = `
         <div class="message-item" id="serverMsgItem">
             <div class="subject">${escapeHtml(state.message.subject)}</div>
             <div class="from">From: ${escapeHtml(state.message.from)}</div>
-            ${state.message.hasAttachment ? '<div style="font-size: 0.75em; color: #2563eb; margin-top: 3px;">📎 Attachment (document.pdf)</div>' : ''}
+            ${state.message.hasAttachment ? '<div style="font-size: 0.78em; color: #2563eb; font-weight: 700; margin-top: 4px;">📎 Attachment (PDF)</div>' : ''}
         </div>
     `;
     elements.serverStatusLabel.textContent = '1 Message';
-    addLog('250 Delivered to recipient mailbox');
+    addLog('250 Delivered to recipient mailbox storage');
 }
 
 // ============================================================================
-// STEP 5: Receiver Client (Member 5: IMAP vs POP3)
+// STEP 5: Receiver Client (Member 5: IMAP vs POP3) - MSG: RECEIVED
 // ============================================================================
 async function step5Receiver() {
+    elements.statusReceiver.classList.add('visible');
+    elements.envelopeBadge.textContent = 'MSG: RECEIVED';
+
     if (state.protocol === 'imap') {
         await runIMAP();
     } else {
@@ -468,7 +469,7 @@ async function runIMAP() {
             <div class="subject">${escapeHtml(state.message.subject)}</div>
             <div class="from">From: ${escapeHtml(state.message.from)}</div>
             <div class="body-preview">${escapeHtml(state.message.message)}</div>
-            ${state.message.hasAttachment ? '<div style="font-size: 0.75em; color: #2563eb; margin-top: 3px;">📎 Attachment (document.pdf)</div>' : ''}
+            ${state.message.hasAttachment ? '<div style="font-size: 0.78em; color: #2563eb; font-weight: 700; margin-top: 4px;">📎 Attachment (PDF)</div>' : ''}
         </div>
     `;
 
@@ -504,7 +505,7 @@ async function runPOP3() {
             <div class="subject">${escapeHtml(state.message.subject)}</div>
             <div class="from">From: ${escapeHtml(state.message.from)}</div>
             <div class="body-preview">${escapeHtml(state.message.message)}</div>
-            ${state.message.hasAttachment ? '<div style="font-size: 0.75em; color: #2563eb; margin-top: 3px;">📎 Attachment (document.pdf)</div>' : ''}
+            ${state.message.hasAttachment ? '<div style="font-size: 0.78em; color: #2563eb; font-weight: 700; margin-top: 4px;">📎 Attachment (PDF)</div>' : ''}
         </div>
     `;
 
