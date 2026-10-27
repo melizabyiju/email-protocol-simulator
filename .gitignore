@@ -1,0 +1,7 @@
+# Git Ignore
+*.zip
+.idea/
+__pycache__/
+*.pyc
+email-simulator-CN-main/
+EmailCommunicationProject/

@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Communication Using SMTP, POP3 and IMAP | Computer Networks Simulator</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="header-badge">Computer Networks Assignment • Group Role Play</div>
+        <h1 class="header-title">
+          <span class="icon-mail">✉️</span>
+          Email Communication Simulator
+        </h1>
+        <p class="header-subtitle">
+          Interactive internal protocol mechanics: SMTP submission &amp; relay, DNS MX resolution, Internet routing, POP3 &amp; IMAP retrieval
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <button id="btnOpenComparison" class="header-btn" title="View protocol comparison table">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+          Protocol Comparison
+        </button>
+        <button id="btnOpenMimeInspector" class="header-btn" title="Inspect MIME multipart structure">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          MIME Structure
+        </button>
+        <button id="btnOpenScriptModal" class="header-btn" title="View complete 5-member role play script">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          Role-Play Script
+        </button>
+      </div>
+    </header>
+
+    <!-- Academic Disclaimer -->
+    <div class="academic-notice-bar">
+      <div class="notice-content">
+        <span class="notice-tag">EDUCATIONAL SIMULATION</span>
+        <span>
+          Simulated protocol exchange demonstrating RFC 5321 (SMTP), RFC 1939 (POP3), RFC 3501 (IMAP), and RFC 2045 (MIME). No external network connections or actual emails sent.
+        </span>
+      </div>
+      <div><strong>Classroom Projection Ready</strong></div>
+    </div>
+
+    <!-- Presentation Bar: 5-Member Role Play Sync -->
+    <section class="roleplay-presentation-card">
+      <div class="roleplay-header">
+        <div class="roleplay-header-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Five-Member Role Play Presentation Mode
+        </div>
+
+        <div class="member-pill-nav">
+          <button class="member-btn active" data-member="1">Member 1: Sender (UA)</button>
+          <button class="member-btn" data-member="2">Member 2: SMTP Server</button>
+          <button class="member-btn" data-member="3">Member 3: Internet &amp; Network</button>
+          <button class="member-btn" data-member="4">Member 4: Recipient Server</button>
+          <button class="member-btn" data-member="5">Member 5: Receiver (Client)</button>
+        </div>
+      </div>
+
+      <div class="roleplay-body">
+        <!-- Speaker Avatar & Title -->
+        <div class="speaker-profile">
+          <div class="speaker-avatar" id="speakerAvatar">👤</div>
+          <div class="speaker-meta">
+            <h4 id="speakerName">Member 1: Alice (Sender)</h4>
+            <span class="speaker-role" id="speakerRole">User Agent (UA)</span>
+          </div>
+        </div>
+
+        <!-- Speaker Speech Dialogue -->
+        <div class="speaker-speech-bubble">
+          <div class="speech-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Live Role-Play Dialogue (Speaker Narration)
+          </div>
+          <p class="speech-text" id="speakerSpeech">
+            "Hello everyone! I represent Member 1, the Sender using an email client like Gmail. Email is an asynchronous, store-and-forward communication system. As a User Agent (UA), I compose the message, package headers like From, To, and Subject, encode attachments with MIME, and initiate an SMTP submission session to hand the message off to my outgoing mail server."
+          </p>
+        </div>
+
+        <!-- CN Technical Notes -->
+        <div class="speaker-cn-notes">
+          <h5>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Key CN Concepts to Highlight
+          </h5>
+          <ul id="speakerConcepts">
+            <li>User Agent (UA) prepares RFC 5322 message format</li>
+            <li>MIME (RFC 2045) encodes non-ASCII and multimedia into 7-bit ASCII</li>
+            <li>SMTP is a Push Protocol; submission uses TCP port 587 with STARTTLS</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Master Controls Card -->
+    <section class="controls-card">
+      <div class="controls-left-group">
+        <button id="btnStart" class="btn btn-start">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span id="btnStartText">Send Email (Start)</span>
+        </button>
+
+        <button id="btnPause" class="btn btn-action" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          <span id="btnPauseText">Pause</span>
+        </button>
+
+        <button id="btnPrevStep" class="btn btn-action" title="Step backward">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Prev Step
+        </button>
+
+        <button id="btnNextStep" class="btn btn-action" title="Step forward">
+          Next Step
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+
+        <button id="btnReset" class="btn btn-reset">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          Reset
+        </button>
+      </div>
+
+      <div class="controls-right-group">
+        <!-- Access Protocol Branch Selector -->
+        <div class="control-pill-box">
+          <label>Access Protocol:</label>
+          <div class="segmented-toggle">
+            <input type="radio" id="protoImap" name="accessProto" value="imap" checked>
+            <label for="protoImap" title="IMAP: Leaves messages on server, syncs state">IMAP</label>
+            <input type="radio" id="protoPop3" name="accessProto" value="pop3">
+            <label for="protoPop3" title="POP3: Downloads message to local machine">POP3</label>
+          </div>
+        </div>
+
+        <!-- POP3 Mode Option -->
+        <div class="control-pill-box" id="pop3OptionsBox" style="display: none;">
+          <label class="custom-checkbox-label" title="Standard POP3 deletes message from server after retrieval (DELE command)">
+            <input type="checkbox" id="chkPop3Delete" checked>
+            Delete server copy after download
+          </label>
+        </div>
+
+        <!-- TLS Toggle -->
+        <div class="control-pill-box">
+          <label class="custom-checkbox-label" title="Simulate STARTTLS encryption handshake on port 587">
+            <input type="checkbox" id="chkTls" checked>
+            Simulate TLS / STARTTLS
+          </label>
+        </div>
+
+        <!-- Speed Slider -->
+        <div class="speed-control-group">
+          <label for="speedSlider">Speed:</label>
+          <input type="range" id="speedSlider" class="speed-slider" min="0.5" max="3" step="0.5" value="1">
+          <span class="speed-badge" id="speedBadge">1x</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stage Progress Indicator -->
+    <section class="stage-progress-card">
+      <div class="stage-stepper">
+        <div class="stage-track">
+          <div class="stage-track-fill" id="stageTrackFill"></div>
+        </div>
+
+        <button class="step-node active" data-step="1" id="stepNode1">
+          <div class="step-bubble">1</div>
+          <div class="step-label">Sender (UA)</div>
+          <div class="step-sublabel">Composition &amp; MIME</div>
+        </button>
+
+        <button class="step-node" data-step="2" id="stepNode2">
+          <div class="step-bubble">2</div>
+          <div class="step-label">SMTP Server</div>
+          <div class="step-sublabel">Queue &amp; MX Lookup</div>
+        </button>
+
+        <button class="step-node" data-step="3" id="stepNode3">
+          <div class="step-bubble">3</div>
+          <div class="step-label">Internet / Routers</div>
+          <div class="step-sublabel">IP Routing &amp; TCP Relay</div>
+        </button>
+
+        <button class="step-node" data-step="4" id="stepNode4">
+          <div class="step-bubble">4</div>
+          <div class="step-label">Recipient Mail Server</div>
+          <div class="step-sublabel">Incoming MTA &amp; Spool</div>
+        </button>
+
+        <button class="step-node" data-step="5" id="stepNode5">
+          <div class="step-bubble">5</div>
+          <div class="step-label">Receiver (Client)</div>
+          <div class="step-sublabel" id="step5Sublabel">IMAP Sync</div>
+        </button>
+      </div>
+    </section>
+
+    <!-- Interactive Network Pipeline Topology -->
+    <section class="pipeline-card">
+      <div class="pipeline-header">
+        <h3>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Live Mail Pipeline Topology
+        </h3>
+        <span class="pipeline-stage-badge" id="pipelineStatusBadge">Ready • Idle</span>
+      </div>
+
+      <div class="pipeline-canvas" id="pipelineCanvas">
+        <!-- Connecting SVG Wire -->
+        <svg class="pipeline-wire-svg">
+          <defs>
+            <linearGradient id="pipelineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#2563eb" />
+              <stop offset="50%" stop-color="#10b981" />
+              <stop offset="100%" stop-color="#3b82f6" />
+            </linearGradient>
+          </defs>
+          <path class="pipeline-wire-path" id="pipelineWirePath" d="M 80 120 L 1500 120" />
+        </svg>
+
+        <!-- Animated Envelope -->
+        <div class="packet-envelope" id="packetEnvelope">
+          <span id="packetIcon">📧</span>
+          <span class="packet-tag" id="packetTag">SMTP Message</span>
+        </div>
+
+        <!-- Node 1: Sender Client -->
+        <div class="topology-node active" id="node1" data-step="1">
+          <span class="node-status-chip" id="chip1">Composing</span>
+          <div class="node-box">
+            <span class="node-icon">💻</span>
+          </div>
+          <div class="node-title">Sender UA</div>
+          <div class="node-protocol">alice@gmail.com</div>
+        </div>
+
+        <!-- Node 2: Sender SMTP Server -->
+        <div class="topology-node" id="node2" data-step="2">
+          <span class="node-status-chip" id="chip2">Spool Queue</span>
+          <div class="node-box">
+            <span class="node-icon">📮</span>
+          </div>
+          <div class="node-title">Outgoing SMTP</div>
+          <div class="node-protocol">smtp.gmail.com:587</div>
+        </div>
+
+        <!-- Node 3: Internet & Routers -->
+        <div class="topology-node" id="node3" data-step="3">
+          <span class="node-status-chip" id="chip3">IP Routing</span>
+          <div class="node-box">
+            <span class="node-icon">🌐</span>
+          </div>
+          <div class="node-title">Internet Routers</div>
+          <div class="node-protocol">TCP / IP Backbone</div>
+        </div>
+
+        <!-- Node 4: Recipient Mail Server -->
+        <div class="topology-node" id="node4" data-step="4">
+          <span class="node-status-chip" id="chip4">Mailbox Stored</span>
+          <div class="node-box">
+            <span class="node-icon">🏢</span>
+          </div>
+          <div class="node-title">Recipient Server</div>
+          <div class="node-protocol">mail.example.org:25</div>
+        </div>
+
+        <!-- Node 5: Recipient Client -->
+        <div class="topology-node" id="node5" data-step="5">
+          <span class="node-status-chip" id="chip5">Access Agent</span>
+          <div class="node-box">
+            <span class="node-icon">📱</span>
+          </div>
+          <div class="node-title">Receiver Client</div>
+          <div class="node-protocol" id="node5ProtoLabel">IMAP (Port 993)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Three-Column Main Workspace Grid -->
+    <main class="main-workspace-grid">
+
+      <!-- Column 1: Sender (User Agent) -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Sender: User Agent (UA)
+          </h3>
+          <span class="flag-pill">Member 1</span>
+        </div>
+
+        <div class="card-body">
+          <form id="emailForm" onsubmit="event.preventDefault();">
+            <div class="form-row">
+              <label for="fromAddress">From (Sender UA):</label>
+              <input type="email" id="fromAddress" class="form-input" value="alice.sender@gmail.com" required>
+            </div>
+
+            <div class="form-row" style="margin-top: 8px;">
+              <label for="toAddress">To (Recipient):</label>
+              <input type="email" id="toAddress" class="form-input" value="bob.receiver@example.org" required>
+            </div>
+
+            <div class="form-row" style="margin-top: 8px;">
+              <label for="emailSubject">Subject:</label>
+              <input type="text" id="emailSubject" class="form-input" value="Computer Networks Project Submission" required>
+            </div>
+
+            <div class="form-row" style="margin-top: 8px;">
+              <label for="emailBody">Message Body:</label>
+              <textarea id="emailBody" class="form-textarea" rows="3" required>Hello Bob,
+
+Here is the final report on Email Communication Using SMTP, POP3, and IMAP for our B.Tech CN demonstration.
+
+Best regards,
+Alice</textarea>
+            </div>
+
+            <div class="form-row" style="margin-top: 10px;">
+              <label class="custom-checkbox-label">
+                <input type="checkbox" id="chkAttachment" checked>
+                Include simulated attachment (MIME multipart)
+              </label>
+            </div>
+
+            <div class="attachment-preview-box" id="attachmentPreviewBox">
+              <div class="attachment-info">
+                <span>📎</span>
+                <div>
+                  <strong>CN_Group_Report.pdf</strong>
+                  <div style="font-size: 0.72rem; color: var(--slate-500);">142 KB • application/pdf</div>
+                </div>
+              </div>
+              <button type="button" class="btn-inspect-mime" id="btnPreviewMimeLink">Inspect MIME</button>
+            </div>
+          </form>
+
+          <!-- UA Concept Note -->
+          <div class="concept-info-card">
+            <h4>💡 Role of User Agent (UA)</h4>
+            <p>
+              The UA is the software that allows users to read, reply, and compose emails. It builds RFC 5322 formatted envelopes and uses <strong>SMTP</strong> to push mail to the local submission mail server (TCP port 587).
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Column 2: Protocol Terminal & Command Stream -->
+      <section class="terminal-card">
+        <div class="terminal-header">
+          <div class="terminal-window-buttons">
+            <div class="win-dot close"></div>
+            <div class="win-dot minimize"></div>
+            <div class="win-dot expand"></div>
+          </div>
+
+          <div class="terminal-tabs">
+            <button class="terminal-tab-btn active" data-filter="all">All Events</button>
+            <button class="terminal-tab-btn" data-filter="smtp">SMTP (Port 587/25)</button>
+            <button class="terminal-tab-btn" data-filter="net">Network / DNS</button>
+            <button class="terminal-tab-btn" data-filter="access">Access (IMAP/POP3)</button>
+          </div>
+
+          <div class="terminal-actions">
+            <button class="terminal-btn" id="btnCopyTerminal" title="Copy raw session log">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy
+            </button>
+            <button class="terminal-btn" id="btnClearTerminal" title="Clear console">
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <div class="terminal-viewport" id="terminalViewport">
+          <!-- Terminal logs injected dynamically -->
+          <div class="term-line">
+            <span class="term-time">[00:00:00]</span>
+            <span class="term-tag tag-info">SYS</span>
+            <span class="term-content term-comment"># Ready. Click "Send Email (Start)" to begin the demonstration.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Column 3: Recipient Server & Client Views -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Recipient Storage &amp; Client
+          </h3>
+          <span class="flag-pill">Member 4 &amp; 5</span>
+        </div>
+
+        <div class="receiver-tabs">
+          <button class="recv-tab-btn active" id="tabBtnServerMailbox">Server Mailbox (/var/mail)</button>
+          <button class="recv-tab-btn" id="tabBtnClientInbox">Receiver Client View</button>
+        </div>
+
+        <div class="card-body">
+          <div class="mailbox-container">
+
+            <!-- Server-Side Mailbox Box -->
+            <div class="mailbox-box" id="serverMailboxContainer">
+              <div class="mailbox-box-title">
+                <span>🏢 Mail Server Spool Storage</span>
+                <span class="mailbox-state-badge" id="serverMailboxBadge">Empty (0 messages)</span>
+              </div>
+
+              <div id="serverMailboxContent">
+                <div class="empty-mailbox-msg">
+                  No email currently stored in recipient mailbox spool. Waiting for incoming SMTP delivery...
+                </div>
+              </div>
+            </div>
+
+            <!-- Client Device Inbox Box -->
+            <div class="mailbox-box" id="clientInboxContainer">
+              <div class="mailbox-box-title">
+                <span>📱 Bob's Local Device (<span id="clientProtoLabel">IMAP</span>)</span>
+                <span class="mailbox-state-badge" id="clientInboxBadge">Not Synced</span>
+              </div>
+
+              <div id="clientInboxContent">
+                <div class="empty-mailbox-msg">
+                  Client has not yet initiated mail retrieval session.
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Protocol Difference Quick Box -->
+          <div class="concept-info-card" id="retrievalSummaryCard">
+            <h4 id="retrievalSummaryTitle">📬 IMAP Mode Active</h4>
+            <p id="retrievalSummaryBody">
+              IMAP synchronizes with the server. When Bob reads the email on his phone or laptop, the message <strong>remains on the server</strong> with the <code>\Seen</code> flag updated.
+            </p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>
+        <strong>Email Communication Using SMTP, POP3 and IMAP</strong> • Developed for B.Tech Computer Networks Group Role-Play Demonstration.
+      </p>
+      <p style="margin-top: 4px;">
+        Designed for clear classroom projection, live step-by-step narration, and complete protocol transparency.
+      </p>
+    </footer>
+
+  </div>
+
+  <!-- =========================================================================
+       Modal: Protocol Comparison Matrix
+       ========================================================================= -->
+  <div class="modal-overlay" id="modalComparison">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>📊 Comprehensive Protocol Comparison Matrix</h3>
+        <button class="modal-close-btn" data-close="modalComparison">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--slate-600); margin-bottom: 16px;">
+          Comparison of the core Application Layer protocols used in Internet electronic mail according to RFC standards:
+        </p>
+
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Feature / Parameter</th>
+              <th>SMTP (RFC 5321)</th>
+              <th>POP3 (RFC 1939)</th>
+              <th>IMAP (RFC 3501)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Primary Role</strong></td>
+              <td>Push: Message submission and inter-server transfer</td>
+              <td>Pull: Mail access / retrieval to local client</td>
+              <td>Pull &amp; Sync: Remote mailbox access &amp; management</td>
+            </tr>
+            <tr>
+              <td><strong>Default Ports</strong></td>
+              <td>Port 25 (relay), 587 (submission), 465 (SMTPS)</td>
+              <td>Port 110 (plaintext), 995 (POP3S over TLS)</td>
+              <td>Port 143 (plaintext), 993 (IMAPS over TLS)</td>
+            </tr>
+            <tr>
+              <td><strong>Transport Protocol</strong></td>
+              <td>TCP (Reliable connection-oriented stream)</td>
+              <td>TCP (Reliable connection-oriented stream)</td>
+              <td>TCP (Reliable connection-oriented stream)</td>
+            </tr>
+            <tr>
+              <td><strong>Server Copy Retention</strong></td>
+              <td>N/A (Forwarding agent &amp; queue)</td>
+              <td>Typically deleted after download (unless configured to keep)</td>
+              <td>Persisted indefinitely on server; synchronized across all devices</td>
+            </tr>
+            <tr>
+              <td><strong>Multi-Device Support</strong></td>
+              <td>N/A</td>
+              <td>Poor (downloaded mail exists only on that single machine)</td>
+              <td>Excellent (all devices view identical folders and read status)</td>
+            </tr>
+            <tr>
+              <td><strong>Folder Organization</strong></td>
+              <td>None</td>
+              <td>Single flat inbox on client</td>
+              <td>Full hierarchical folders (Inbox, Sent, Drafts, Trash) on server</td>
+            </tr>
+            <tr>
+              <td><strong>Message Flags</strong></td>
+              <td>None</td>
+              <td>None (only retrieved or not)</td>
+              <td>Rich state flags (<code>\Seen</code>, <code>\Answered</code>, <code>\Flagged</code>, <code>\Deleted</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>Partial Message Download</strong></td>
+              <td>No (entire message submitted)</td>
+              <td>No (downloads full message with all attachments)</td>
+              <td>Yes (can fetch headers only, or stream specific MIME parts)</td>
+            </tr>
+            <tr>
+              <td><strong>Resource Consumption</strong></td>
+              <td>Transient spool memory</td>
+              <td>Low server disk usage; high client storage</td>
+              <td>Higher server storage and memory required</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Modal: MIME Format Inspector
+       ========================================================================= -->
+  <div class="modal-overlay" id="modalMime">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>📎 MIME (Multipurpose Internet Mail Extensions) Inspector</h3>
+        <button class="modal-close-btn" data-close="modalMime">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--slate-600); margin-bottom: 12px;">
+          Original SMTP only supports 7-bit ASCII characters. RFC 2045 / RFC 2046 (MIME) allows non-ASCII text, HTML, and binary file attachments via multipart boundaries and Base64 encoding.
+        </p>
+
+        <pre class="mime-raw-code" id="mimeRawCode">
+MIME-Version: 1.0
+From: alice.sender@gmail.com
+To: bob.receiver@example.org
+Subject: Computer Networks Project Submission
+Date: Tue, 27 Oct 2026 22:30:00 +0530
+Message-ID: &lt;20261027223000.84920.cn@gmail.com&gt;
+Content-Type: multipart/mixed; boundary="----=_NextPart_001_847291"
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_001_847291
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Hello Bob,
+
+Here is the final report on Email Communication Using SMTP, POP3, and IMAP for our B.Tech CN demonstration.
+
+Best regards,
+Alice
+
+------=_NextPart_001_847291
+Content-Type: application/pdf; name="CN_Group_Report.pdf"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="CN_Group_Report.pdf"
+
+JVBERi0xLjQKJcTl8uXrp/Og0MTGCjQgMCBvYmoKPDwKL0ZpbHRlciAvRmxhdGVEZWNvZGUK
+L0xlbmd0aCAzOTQKNDAgMCBSCi9UeXBlIC9YT2JqZWN0Ci9TdWJ0eXBlIC9JbWFnZQovV2lk
+dGggMTI4Ci9IZWlnaHQgMTI4Cj4+CnN0cmVhbQp4nO2dzWsTQRjGn9m0aWubbtpU06StbVra
+... [Simulated Base64 Binary Stream] ...
+------=_NextPart_001_847291--
+        </pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Modal: Complete 5-Member Role Play Script
+       ========================================================================= -->
+  <div class="modal-overlay" id="modalScript">
+    <div class="modal-box" style="max-width: 900px;">
+      <div class="modal-header">
+        <h3>🎭 Complete 5-Member Role-Play Presentation Script</h3>
+        <button class="modal-close-btn" data-close="modalScript">&times;</button>
+      </div>
+      <div class="modal-body" style="font-size: 0.9rem; line-height: 1.6; color: var(--slate-800);">
+        <div style="margin-bottom: 20px; padding: 12px; background: var(--primary-50); border-radius: var(--radius-md);">
+          <strong>Role Play Overview:</strong> A synchronized classroom presentation where each team member represents one stage of the email architecture, demonstrating protocol commands and answering viva questions.
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <h4 style="color: var(--primary-800);">Member 1: Sender / User Agent (UA)</h4>
+          <p><em>"Good morning respected teacher and friends. I am representing Member 1, the Sender and User Agent. Whenever someone composes an email, the User Agent provides the user interface, structures the email into standard RFC 5322 headers (From, To, Subject, Date), and handles non-text attachments using MIME encoding. Because email is a store-and-forward system, I do not send the email directly to Bob's laptop; instead, I push it to my outgoing SMTP submission server using TCP port 587."</em></p>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <h4 style="color: var(--primary-800);">Member 2: Sender's SMTP Server (Outgoing MTA)</h4>
+          <p><em>"I am Member 2, representing the Outgoing SMTP Server. SMTP is the Simple Mail Transfer Protocol (RFC 5321). When Alice's client connects, I execute a greeting and authenticate her credentials. Once accepted via the DATA command, I store the message in my local Spool Queue. I then consult DNS for the MX (Mail Exchange) record of 'example.org' to determine which server is responsible for receiving Bob's email, preparing it for transmission."</em></p>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <h4 style="color: var(--primary-800);">Member 3: Internet &amp; Network Layer</h4>
+          <p><em>"I am Member 3, representing the Internet Backbone and Routers. While SMTP is an application layer protocol, it relies entirely on TCP/IP underneath. I establish a reliable TCP 3-way handshake over port 25 between the two servers. My routers fragment and forward the IP packets hop-by-hop across autonomous systems, ensuring end-to-end delivery across the physical and logical internet."</em></p>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <h4 style="color: var(--primary-800);">Member 4: Recipient Mail Server (Incoming MTA &amp; Mailbox)</h4>
+          <p><em>"I am Member 4, the Recipient Mail Server. My incoming SMTP listener receives the message, validates that 'bob.receiver' is a real user in my domain, performs spam/malware checks, and deposits the email safely into Bob's server mailbox storage (/var/mail/bob). Because Bob's device might be turned off or offline, my server safely preserves the email until he requests it."</em></p>
+        </div>
+
+        <div>
+          <h4 style="color: var(--primary-800);">Member 5: Receiver Client (POP3 vs IMAP Access)</h4>
+          <p><em>"I am Member 5, representing Bob and the Mail Access protocols. Because SMTP is strictly a push protocol, a recipient cannot use SMTP to pull mail from their mailbox. Instead, we use either POP3 or IMAP. In POP3 (RFC 1939), the client downloads the message to local storage and typically issues a DELE command to remove it from the server. In IMAP (RFC 3501), the message stays on the server, allowing multiple devices like phones and laptops to stay synchronized with read/unread flags. Today we demonstrate both branches on the exact same stored message!"</em></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
