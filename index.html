@@ -12,68 +12,57 @@
     <div class="container">
         <!-- Header -->
         <header>
-            <h1>📧 Email Flow Simulator</h1>
-            <p>Email Communication Using SMTP, POP3 and IMAP • 5-Member Role Play Demonstration</p>
+            <div class="header-title-group">
+                <h1>Email Flow Simulator</h1>
+                <p>Email Communication Using SMTP, POP3 and IMAP • Computer Networks Demonstration</p>
+            </div>
+            <div class="header-badge">5-Member Role Play</div>
         </header>
 
         <!-- Audience Live Narration Banner -->
         <div class="audience-strip">
             <span class="audience-member-badge" id="memberBadge">Ready</span>
-            <span class="audience-action-text" id="actionText">Click "Send Email" to begin the demonstration.</span>
+            <span class="audience-action-text" id="actionText">Click "Start Simulation" to begin the demonstration.</span>
         </div>
 
-        <!-- Controls Bar -->
-        <div class="controls">
-            <button id="sendBtn" class="btn-primary">Send Email</button>
-            <button id="pauseBtn" class="btn-secondary" style="display: none;">Pause</button>
-            <button id="stepBtn" class="btn-secondary" style="display: none;">Step</button>
-            <button id="resetBtn" class="btn-secondary">Reset</button>
-
-            <div class="control-group">
-                <label for="protocolToggle">Protocol:</label>
-                <select id="protocolToggle">
-                    <option value="imap">IMAP</option>
-                    <option value="pop3">POP3</option>
-                </select>
+        <!-- Clean Controls Bar (Only Essential Controls) -->
+        <div class="controls-bar">
+            <div class="controls-left">
+                <button id="startBtn" class="btn btn-primary">Start Simulation</button>
+                <button id="pauseBtn" class="btn btn-secondary" style="display: none;">Pause</button>
+                <button id="nextBtn" class="btn btn-secondary">Next Step</button>
+                <button id="resetBtn" class="btn btn-secondary">Reset</button>
             </div>
 
-            <div class="control-group">
-                <label>
-                    <input type="checkbox" id="rawLogToggle" checked>
-                    Show Protocol Log
-                </label>
-            </div>
+            <div class="controls-right">
+                <div class="control-item">
+                    <label for="protocolSelect">Protocol:</label>
+                    <select id="protocolSelect">
+                        <option value="imap">IMAP</option>
+                        <option value="pop3">POP3</option>
+                    </select>
+                </div>
 
-            <div class="control-group">
-                <label>
-                    <input type="checkbox" id="tlsToggle">
-                    Simulate TLS
-                </label>
-            </div>
+                <div class="control-item" id="pop3OptionWrapper" style="display: none;">
+                    <label class="custom-chk">
+                        <input type="checkbox" id="pop3DeleteChk" checked>
+                        Delete on server
+                    </label>
+                </div>
 
-            <div class="control-group" id="pop3OptionGroup" style="display: none;">
-                <label>
-                    <input type="checkbox" id="pop3DeleteToggle" checked>
-                    Delete on Server
-                </label>
-            </div>
-
-            <div class="control-group">
-                <label for="speedSlider">Speed:</label>
-                <input type="range" id="speedSlider" class="speed-slider" min="1" max="5" value="2">
-                <span id="speedValue" style="font-size: 0.95em; font-weight: 800; color: #1e293b;">2x</span>
+                <button id="toggleLogBtn" class="btn btn-outline">Show Protocol Terminal</button>
             </div>
         </div>
 
-        <!-- Main 3-Column Layout -->
+        <!-- Main 3-Column Content -->
         <div class="main-content">
             <!-- Left: Sender Panel -->
             <div class="panel">
                 <h2>
-                    <span>📤 Sender</span>
-                    <span class="member-subtag">Member 1</span>
+                    <span>Sender</span>
+                    <span class="member-chip">Member 1</span>
                 </h2>
-                <form id="emailForm" class="email-form">
+                <form id="emailForm" class="email-form" onsubmit="event.preventDefault();">
                     <div class="form-group">
                         <label for="fromEmail">From:</label>
                         <input type="email" id="fromEmail" value="alice@example.com" required>
@@ -84,102 +73,156 @@
                     </div>
                     <div class="form-group">
                         <label for="subject">Subject:</label>
-                        <input type="text" id="subject" value="Hello from Email Simulator!" required>
+                        <input type="text" id="subject" value="Computer Networks Assignment" required>
                     </div>
                     <div class="form-group">
                         <label for="message">Message:</label>
-                        <textarea id="message" required>Demonstrating how email flows across SMTP, routers, and POP3/IMAP.</textarea>
+                        <textarea id="message" required>Demonstrating how email flows through SMTP, Internet routing, and IMAP/POP3.</textarea>
                     </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="hasAttachment">
-                        <label for="hasAttachment">Include attachment</label>
+                    <div class="form-group" style="margin-top: 2px;">
+                        <label class="custom-chk">
+                            <input type="checkbox" id="chkAttachment">
+                            Include attachment (PDF)
+                        </label>
                     </div>
                 </form>
             </div>
 
-            <!-- Middle: Network / Mail Pipeline (Enlarged Focus) -->
-            <div class="panel">
+            <!-- Center: Network / Mail Pipeline Traversal -->
+            <div class="panel network-pipeline-card">
                 <h2>
-                    <span>🌐 Network / Mail Pipeline Traversal</span>
-                    <span class="member-subtag">Members 2, 3 &amp; 4</span>
+                    <span>Network &amp; Mail Pipeline</span>
+                    <span class="member-chip">Members 2, 3 &amp; 4</span>
                 </h2>
 
-                <div class="network-pipeline">
-                    <div class="pipeline-path"></div>
-                    <div class="envelope" id="envelope">
-                        <span id="envelopeIcon">✉️</span>
-                        <span class="envelope-badge" id="envelopeBadge">MSG</span>
+                <div class="pipeline-viewport" id="pipelineViewport">
+                    <div class="pipeline-track" id="pipelineTrack">
+                        <!-- Horizontal Connecting Line -->
+                        <div class="pipeline-line"></div>
+
+                        <!-- Animated Traveling Envelope -->
+                        <div class="envelope" id="envelope">
+                            <svg width="32" height="24" viewBox="0 0 24 24" fill="#2563eb" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                            </svg>
+                        </div>
+
+                        <!-- 5 Equal-Sized Nodes Row -->
+                        <div class="pipeline-nodes-row">
+                            <!-- Node 1: Sender (Lucide 'send') -->
+                            <div class="node-wrapper active" id="node-1">
+                                <div class="node-circle" title="Sender Client">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                    </svg>
+                                </div>
+                                <div class="node-info">
+                                    <div class="node-title">Sender</div>
+                                    <div class="node-role">Member 1</div>
+                                </div>
+                            </div>
+
+                            <!-- Node 2: SMTP Server (Lucide 'mail') -->
+                            <div class="node-wrapper" id="node-2">
+                                <div class="node-circle" title="Outgoing SMTP Server">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="node-info">
+                                    <div class="node-title">SMTP Server</div>
+                                    <div class="node-role">Member 2</div>
+                                </div>
+                            </div>
+
+                            <!-- Node 3: Internet (Lucide 'network') -->
+                            <div class="node-wrapper" id="node-3">
+                                <div class="node-circle" title="Internet Backbone &amp; Routers">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="16" y="16" width="6" height="6" rx="1"></rect>
+                                        <rect x="2" y="16" width="6" height="6" rx="1"></rect>
+                                        <rect x="9" y="2" width="6" height="6" rx="1"></rect>
+                                        <path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"></path>
+                                        <path d="M12 12V8"></path>
+                                    </svg>
+                                </div>
+                                <div class="node-info">
+                                    <div class="node-title">Internet</div>
+                                    <div class="node-role">Member 3</div>
+                                </div>
+                            </div>
+
+                            <!-- Node 4: Recipient Server (Lucide 'server') -->
+                            <div class="node-wrapper" id="node-4">
+                                <div class="node-circle" title="Recipient Mail Server">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                                        <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                                        <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                                        <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                                    </svg>
+                                </div>
+                                <div class="node-info">
+                                    <div class="node-title">Mail Server</div>
+                                    <div class="node-role">Member 4</div>
+                                </div>
+                            </div>
+
+                            <!-- Node 5: Receiver (Lucide 'inbox') -->
+                            <div class="node-wrapper" id="node-5">
+                                <div class="node-circle" title="Receiver Client">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
+                                        <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+                                    </svg>
+                                </div>
+                                <div class="node-info">
+                                    <div class="node-title">Receiver</div>
+                                    <div class="node-role">Member 5</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-
-                    <div class="pipeline-nodes">
-                        <!-- Node 1: Sender (Member 1) -->
-                        <div class="node" id="node-sender">
-                            <span class="node-role-tag">Member 1</span>
-                            <div class="node-icon">📤</div>
-                            <div class="node-label">Sender<br>Client</div>
-                            <div class="status-bubble green" id="status-sender">MSG: SENT</div>
-                        </div>
-
-                        <!-- Node 2: SMTP Outgoing MTA (Member 2) -->
-                        <div class="node" id="node-mta-out">
-                            <span class="node-role-tag">Member 2</span>
-                            <div class="node-icon">📮</div>
-                            <div class="node-label">SMTP<br>Server</div>
-                            <div class="status-bubble" id="status-mta-out"></div>
-                        </div>
-
-                        <!-- Node 3: Internet (Member 3) -->
-                        <div class="node" id="node-internet">
-                            <span class="node-role-tag">Member 3</span>
-                            <div class="node-icon">🌐</div>
-                            <div class="node-label">Internet<br>Routers</div>
-                            <div class="status-bubble" id="status-internet"></div>
-                        </div>
-
-                        <!-- Node 4: Recipient Server Incoming MTA (Member 4) -->
-                        <div class="node" id="node-mta-in">
-                            <span class="node-role-tag">Member 4</span>
-                            <div class="node-icon">🏢</div>
-                            <div class="node-label">Recipient<br>Server</div>
-                            <div class="status-bubble" id="status-mta-in"></div>
-                        </div>
-
-                        <!-- Node 5: Receiver Client (Member 5) -->
-                        <div class="node" id="node-receiver">
-                            <span class="node-role-tag">Member 5</span>
-                            <div class="node-icon">📬</div>
-                            <div class="node-label">Receiver<br>Client</div>
-                            <div class="status-bubble green" id="status-receiver">MSG: RECEIVED</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Live Protocol Terminal -->
-                <div class="smtp-log" id="smtpLog">
-                    <div class="info"># Protocol log ready. Click "Send Email" to start simulation...</div>
                 </div>
 
                 <!-- 5-Step Timeline -->
                 <div class="timeline" id="timeline">
-                    <div class="timeline-step" data-step="1">
-                        <div class="timeline-number">1</div>
-                        <div class="timeline-label">Sender (UA)</div>
+                    <div class="timeline-step active" data-step="1">
+                        <div class="timeline-num">1</div>
+                        <div class="timeline-lbl">Sender</div>
                     </div>
                     <div class="timeline-step" data-step="2">
-                        <div class="timeline-number">2</div>
-                        <div class="timeline-label">SMTP Server</div>
+                        <div class="timeline-num">2</div>
+                        <div class="timeline-lbl">SMTP Server</div>
                     </div>
                     <div class="timeline-step" data-step="3">
-                        <div class="timeline-number">3</div>
-                        <div class="timeline-label">Internet</div>
+                        <div class="timeline-num">3</div>
+                        <div class="timeline-lbl">Internet</div>
                     </div>
                     <div class="timeline-step" data-step="4">
-                        <div class="timeline-number">4</div>
-                        <div class="timeline-label">Mail Server</div>
+                        <div class="timeline-num">4</div>
+                        <div class="timeline-lbl">Mail Server</div>
                     </div>
                     <div class="timeline-step" data-step="5">
-                        <div class="timeline-number">5</div>
-                        <div class="timeline-label">Receiver</div>
+                        <div class="timeline-num">5</div>
+                        <div class="timeline-lbl">Receiver</div>
+                    </div>
+                </div>
+
+                <!-- Collapsible Protocol Terminal (Hidden by default) -->
+                <div class="terminal-wrapper" id="terminalWrapper" style="display: none;">
+                    <div class="terminal-header">
+                        <div class="terminal-header-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+                            <span>Protocol Exchange Terminal (RFC 5321 / 1939 / 3501)</span>
+                        </div>
+                        <button id="btnClearLog" class="btn-terminal-clear">Clear</button>
+                    </div>
+                    <div class="smtp-log" id="smtpLog">
+                        <div class="info"># Terminal initialized. Logs record automatically during simulation.</div>
                     </div>
                 </div>
             </div>
@@ -187,28 +230,30 @@
             <!-- Right: Receiver Panel -->
             <div class="panel">
                 <h2>
-                    <span>📥 Receiver</span>
-                    <span class="member-subtag">Member 5</span>
+                    <span>Receiver</span>
+                    <span class="member-chip">Member 5</span>
                 </h2>
 
-                <div class="receiver-content">
-                    <div class="mailbox">
-                        <h3>
-                            <span>📮 Server Mailbox</span>
-                            <span style="font-size: 0.8em; color: #64748b;" id="serverStatusLabel">Empty</span>
-                        </h3>
+                <div class="receiver-sections">
+                    <!-- Server Mailbox Card -->
+                    <div class="receiver-card">
+                        <div class="receiver-card-header">
+                            <span class="receiver-card-title">Server Mailbox (/var/mail)</span>
+                            <span class="status-badge" id="serverBadge">Empty</span>
+                        </div>
                         <div id="serverMailbox">
-                            <div class="empty-msg">No mail on server</div>
+                            <div class="empty-state">No email on server</div>
                         </div>
                     </div>
 
-                    <div class="client-view">
-                        <h3>
-                            <span>💻 Client <span id="protocolLabel">IMAP</span> View</span>
-                            <span id="syncIndicator" class="sync-dot" style="display: none;"></span>
-                        </h3>
+                    <!-- Client Inbox Card -->
+                    <div class="receiver-card">
+                        <div class="receiver-card-header">
+                            <span class="receiver-card-title">Client (<span id="protocolBadge">IMAP</span>) Inbox</span>
+                            <span class="status-badge" id="clientBadge">Waiting</span>
+                        </div>
                         <div id="clientMailbox">
-                            <div class="empty-msg">Inbox empty</div>
+                            <div class="empty-state">Inbox empty</div>
                         </div>
                     </div>
                 </div>

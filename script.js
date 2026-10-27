@@ -1,280 +1,526 @@
 // ============================================================================
-// EMAIL FLOW SIMULATOR - Clean Educational Script
-// 5-Member Role Play Sequence: Sender, SMTP, Internet, Server, Receiver
+// EMAIL FLOW SIMULATOR - Clean Core Script
+// Smooth Traversal, Centered Envelope, Collapsible Protocol Terminal
 // ============================================================================
 
 const state = {
     isAnimating: false,
     isPaused: false,
     currentStep: 0,
-    speed: 2,
+    totalSteps: 5,
     protocol: 'imap',
-    tlsEnabled: false,
-    rawLogEnabled: true,
-    hasAttachment: false,
     pop3Delete: true,
-    message: null
+    stepDelay: 1200,
+    message: null,
+    timer: null
 };
 
-// DOM Elements
+// DOM References
 const elements = {
-    sendBtn: document.getElementById('sendBtn'),
+    startBtn: document.getElementById('startBtn'),
     pauseBtn: document.getElementById('pauseBtn'),
-    stepBtn: document.getElementById('stepBtn'),
+    nextBtn: document.getElementById('nextBtn'),
     resetBtn: document.getElementById('resetBtn'),
-    protocolToggle: document.getElementById('protocolToggle'),
-    rawLogToggle: document.getElementById('rawLogToggle'),
-    tlsToggle: document.getElementById('tlsToggle'),
-    pop3OptionGroup: document.getElementById('pop3OptionGroup'),
-    pop3DeleteToggle: document.getElementById('pop3DeleteToggle'),
-    speedSlider: document.getElementById('speedSlider'),
-    speedValue: document.getElementById('speedValue'),
-    emailForm: document.getElementById('emailForm'),
-    envelope: document.getElementById('envelope'),
-    envelopeBadge: document.getElementById('envelopeBadge'),
-    statusSender: document.getElementById('status-sender'),
-    statusReceiver: document.getElementById('status-receiver'),
+    protocolSelect: document.getElementById('protocolSelect'),
+    pop3OptionWrapper: document.getElementById('pop3OptionWrapper'),
+    pop3DeleteChk: document.getElementById('pop3DeleteChk'),
+    toggleLogBtn: document.getElementById('toggleLogBtn'),
+    terminalWrapper: document.getElementById('terminalWrapper'),
+    btnClearLog: document.getElementById('btnClearLog'),
     smtpLog: document.getElementById('smtpLog'),
-    serverMailbox: document.getElementById('serverMailbox'),
-    clientMailbox: document.getElementById('clientMailbox'),
-    serverStatusLabel: document.getElementById('serverStatusLabel'),
-    protocolLabel: document.getElementById('protocolLabel'),
-    syncIndicator: document.getElementById('syncIndicator'),
+
+    // Pipeline
+    pipelineTrack: document.getElementById('pipelineTrack'),
+    envelope: document.getElementById('envelope'),
     memberBadge: document.getElementById('memberBadge'),
-    actionText: document.getElementById('actionText')
+    actionText: document.getElementById('actionText'),
+
+    // Form
+    fromEmail: document.getElementById('fromEmail'),
+    toEmail: document.getElementById('toEmail'),
+    subject: document.getElementById('subject'),
+    message: document.getElementById('message'),
+    chkAttachment: document.getElementById('chkAttachment'),
+
+    // Storage
+    serverBadge: document.getElementById('serverBadge'),
+    serverMailbox: document.getElementById('serverMailbox'),
+    clientBadge: document.getElementById('clientBadge'),
+    clientMailbox: document.getElementById('clientMailbox'),
+    protocolBadge: document.getElementById('protocolBadge')
 };
 
-// Audience Narration Info per Step
-const stepInfo = {
-    0: {
+// Narration for each stage
+const narrationData = [
+    {
         member: "Member 1: Sender (Alice)",
-        text: "Message Sent! Submitting email via SMTP on port 587 (Push protocol)."
+        text: "Composing email and initiating SMTP connection on port 587 (Submission)."
     },
-    1: {
+    {
         member: "Member 2: SMTP Server",
-        text: "Authenticating credentials, queuing message, querying DNS for recipient MX record."
+        text: "Authenticating sender, queuing message in spool, and looking up recipient DNS MX record."
     },
-    2: {
+    {
         member: "Member 3: Internet & Network",
-        text: "Routers forwarding TCP/IP packets across the Internet to destination mail server."
+        text: "Routers forwarding TCP packets across the network hops to destination mail server."
     },
-    3: {
+    {
         member: "Member 4: Recipient Server",
-        text: "Incoming server validates mailbox and stores message safely in recipient's server mailbox."
+        text: "Incoming server validates mailbox address and deposits email into /var/mail/bob."
     },
-    4: {
+    {
         member: "Member 5: Receiver (Bob)",
-        text: "Message Received! Retrieved via IMAP (remains on server) or POP3 (downloaded to device)."
+        text: "Client retrieves email using IMAP (stays on server) or POP3 (downloaded to device)."
     }
-};
+];
 
-// Initialize Event Listeners
-function initEventListeners() {
-    elements.sendBtn.addEventListener('click', handleSend);
-    elements.pauseBtn.addEventListener('click', handlePause);
-    elements.stepBtn.addEventListener('click', handleStep);
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    initEvents();
+    // Position envelope at Node 1 initially
+    setTimeout(() => updateEnvelopePosition(0), 100);
+});
+
+window.addEventListener('resize', () => {
+    updateEnvelopePosition(state.currentStep);
+});
+
+function initEvents() {
+    elements.startBtn.addEventListener('click', handleStart);
+    elements.pauseBtn.addEventListener('click', handlePauseResume);
+    elements.nextBtn.addEventListener('click', handleNextStep);
     elements.resetBtn.addEventListener('click', handleReset);
-    elements.protocolToggle.addEventListener('change', handleProtocolChange);
-    elements.rawLogToggle.addEventListener('change', (e) => state.rawLogEnabled = e.target.checked);
-    elements.tlsToggle.addEventListener('change', (e) => state.tlsEnabled = e.target.checked);
-    elements.pop3DeleteToggle.addEventListener('change', (e) => state.pop3Delete = e.target.checked);
-    elements.speedSlider.addEventListener('input', handleSpeedChange);
 
-    elements.emailForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        handleSend();
-    });
+    elements.protocolSelect.addEventListener('change', handleProtocolChange);
+    elements.pop3DeleteChk.addEventListener('change', (e) => state.pop3Delete = e.target.checked);
+
+    elements.toggleLogBtn.addEventListener('click', toggleTerminal);
+    elements.btnClearLog.addEventListener('click', clearLog);
 }
 
-// Handle Protocol Switch
+// Terminal Visibility Toggle
+function toggleTerminal() {
+    const isHidden = elements.terminalWrapper.style.display === 'none';
+    if (isHidden) {
+        elements.terminalWrapper.style.display = 'block';
+        elements.toggleLogBtn.textContent = 'Hide Protocol Terminal';
+        elements.toggleLogBtn.classList.add('active');
+        elements.smtpLog.scrollTop = elements.smtpLog.scrollHeight;
+    } else {
+        elements.terminalWrapper.style.display = 'none';
+        elements.toggleLogBtn.textContent = 'Show Protocol Terminal';
+        elements.toggleLogBtn.classList.remove('active');
+    }
+}
+
+// Protocol Change
 function handleProtocolChange(e) {
     state.protocol = e.target.value;
-    elements.protocolLabel.textContent = state.protocol.toUpperCase();
-    elements.pop3OptionGroup.style.display = state.protocol === 'pop3' ? 'flex' : 'none';
-}
+    elements.protocolBadge.textContent = state.protocol.toUpperCase();
+    elements.pop3OptionWrapper.style.display = state.protocol === 'pop3' ? 'flex' : 'none';
 
-// Handle Speed Slider
-function handleSpeedChange(e) {
-    state.speed = parseInt(e.target.value, 10);
-    elements.speedValue.textContent = state.speed + 'x';
-}
-
-// Handle Send
-function handleSend() {
-    if (state.isAnimating) return;
-
-    state.message = {
-        from: document.getElementById('fromEmail').value,
-        to: document.getElementById('toEmail').value,
-        subject: document.getElementById('subject').value,
-        message: document.getElementById('message').value,
-        hasAttachment: document.getElementById('hasAttachment').checked
-    };
-
-    if (!state.message.from || !state.message.to || !state.message.subject) {
-        alert('Please fill in required email fields.');
-        return;
+    // If already at step 5 and mailbox has content, re-render step 5
+    if (state.currentStep === 4 && state.message) {
+        executeStep5();
     }
+}
+
+// Start simulation
+async function handleStart() {
+    if (state.isAnimating && !state.isPaused) return;
+
+    if (!readMessageForm()) return;
 
     state.isAnimating = true;
     state.isPaused = false;
     state.currentStep = 0;
 
-    elements.sendBtn.disabled = true;
-    elements.pauseBtn.style.display = 'inline-block';
+    elements.startBtn.disabled = true;
+    elements.pauseBtn.style.display = 'inline-flex';
     elements.pauseBtn.textContent = 'Pause';
-    elements.stepBtn.style.display = 'inline-block';
+    elements.nextBtn.disabled = true;
 
-    if (state.message.hasAttachment) {
-        elements.envelope.classList.add('large');
-    } else {
-        elements.envelope.classList.remove('large');
-    }
-
-    clearLogs();
-    runPipeline();
+    clearLog();
+    runPipelineSequence();
 }
 
-// Handle Pause / Resume
-function handlePause() {
+// Pause / Resume
+function handlePauseResume() {
+    if (!state.isAnimating) return;
+
     state.isPaused = !state.isPaused;
     elements.pauseBtn.textContent = state.isPaused ? 'Resume' : 'Pause';
+
     if (!state.isPaused) {
-        runPipeline();
+        runPipelineSequence();
+    } else {
+        clearTimeout(state.timer);
     }
 }
 
-// Handle Step
-function handleStep() {
-    if (state.isPaused) {
-        state.isPaused = false;
-        runPipeline();
-        setTimeout(() => {
-            state.isPaused = true;
-            elements.pauseBtn.textContent = 'Resume';
-        }, 150);
+// Step-by-Step Advance
+async function handleNextStep() {
+    if (!state.message && !readMessageForm()) return;
+
+    if (state.currentStep < state.totalSteps - 1) {
+        state.currentStep++;
+        updateVisualStage(state.currentStep);
+        await executeStep(state.currentStep);
+    } else if (state.currentStep === state.totalSteps - 1) {
+        // Already at last step
+        state.isAnimating = false;
+        elements.startBtn.disabled = false;
+        elements.nextBtn.disabled = false;
     }
 }
 
-// Handle Reset
+// Reset
 function handleReset() {
+    clearTimeout(state.timer);
     state.isAnimating = false;
     state.isPaused = false;
     state.currentStep = 0;
     state.message = null;
 
-    elements.sendBtn.disabled = false;
+    elements.startBtn.disabled = false;
     elements.pauseBtn.style.display = 'none';
-    elements.stepBtn.style.display = 'none';
-    elements.pauseBtn.textContent = 'Pause';
-    elements.syncIndicator.style.display = 'none';
+    elements.nextBtn.disabled = false;
 
-    elements.memberBadge.textContent = "Ready";
-    elements.actionText.textContent = "Click 'Send Email' to begin the demonstration.";
+    elements.memberBadge.textContent = 'Ready';
+    elements.actionText.textContent = 'Click "Start Simulation" to begin the demonstration.';
 
-    resetVisuals();
-    clearLogs();
-}
+    // Reset visual nodes
+    for (let i = 1; i <= state.totalSteps; i++) {
+        const node = document.getElementById(`node-${i}`);
+        if (node) node.className = (i === 1) ? 'node-wrapper active' : 'node-wrapper';
+    }
 
-function resetVisuals() {
-    document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
-    document.querySelectorAll('.status-bubble').forEach(b => {
-        b.textContent = '';
-        b.className = 'status-bubble';
+    // Reset timeline
+    document.querySelectorAll('.timeline-step').forEach((el, idx) => {
+        el.className = (idx === 0) ? 'timeline-step active' : 'timeline-step';
     });
-    document.querySelectorAll('.timeline-step').forEach(t => t.classList.remove('active'));
 
-    elements.envelope.style.left = '4%';
-    elements.envelopeBadge.textContent = 'MSG';
-    elements.statusSender.textContent = 'MSG: SENT';
-    elements.statusSender.className = 'status-bubble green';
-    elements.statusReceiver.textContent = 'MSG: RECEIVED';
-    elements.statusReceiver.className = 'status-bubble green';
+    // Reset storage
+    elements.serverBadge.textContent = 'Empty';
+    elements.serverBadge.className = 'status-badge';
+    elements.serverMailbox.innerHTML = '<div class="empty-state">No email on server</div>';
 
-    elements.serverMailbox.innerHTML = '<div class="empty-msg">No mail on server</div>';
-    elements.clientMailbox.innerHTML = '<div class="empty-msg">Inbox empty</div>';
-    elements.serverStatusLabel.textContent = 'Empty';
+    elements.clientBadge.textContent = 'Waiting';
+    elements.clientBadge.className = 'status-badge';
+    elements.clientMailbox.innerHTML = '<div class="empty-state">Inbox empty</div>';
+
+    updateEnvelopePosition(0);
+    clearLog();
 }
 
-function clearLogs() {
-    elements.smtpLog.innerHTML = '<div class="info"># Protocol log ready...</div>';
-}
+// Read and validate form
+function readMessageForm() {
+    const from = elements.fromEmail.value.trim();
+    const to = elements.toEmail.value.trim();
+    const subject = elements.subject.value.trim();
+    const body = elements.message.value.trim();
+    const hasAttachment = elements.chkAttachment.checked;
 
-// Main Step-by-Step Flow
-async function runPipeline() {
-    const steps = [
-        { name: 'sender', action: step1Sender },
-        { name: 'mta-out', action: step2SMTP },
-        { name: 'internet', action: step3Internet },
-        { name: 'mta-in', action: step4RecipientServer },
-        { name: 'receiver', action: step5Receiver }
-    ];
-
-    while (state.isAnimating && !state.isPaused && state.currentStep < steps.length) {
-        const stepIndex = state.currentStep;
-        const step = steps[stepIndex];
-
-        // Update Audience Banner
-        elements.memberBadge.textContent = stepInfo[stepIndex].member;
-        elements.actionText.textContent = stepInfo[stepIndex].text;
-
-        // Update Timeline
-        updateTimeline(stepIndex + 1);
-
-        // Highlight Active Node
-        highlightNode(step.name);
-
-        // Move Envelope
-        moveEnvelope(stepIndex);
-
-        // Execute Protocol Events for this step
-        await step.action();
-
-        if (state.isPaused) break;
-
-        // Pause slightly between steps
-        await wait(1000 / state.speed);
-
-        state.currentStep++;
+    if (!from || !to || !subject || !body) {
+        alert('Please fill in all email fields.');
+        return false;
     }
 
-    if (state.currentStep >= steps.length) {
-        state.isAnimating = false;
-        elements.sendBtn.disabled = false;
-        elements.pauseBtn.style.display = 'none';
-        elements.stepBtn.style.display = 'none';
-        elements.memberBadge.textContent = "Completed";
-        elements.actionText.textContent = "Simulation finished! Email delivered and retrieved successfully.";
+    state.message = { from, to, subject, body, hasAttachment };
+    return true;
+}
+
+// Pipeline Sequential Loop
+async function runPipelineSequence() {
+    while (state.isAnimating && !state.isPaused && state.currentStep < state.totalSteps) {
+        updateVisualStage(state.currentStep);
+        await executeStep(state.currentStep);
+
+        if (state.currentStep < state.totalSteps - 1) {
+            await sleep(state.stepDelay);
+            if (!state.isPaused && state.isAnimating) {
+                state.currentStep++;
+            }
+        } else {
+            // Completed
+            state.isAnimating = false;
+            elements.startBtn.disabled = false;
+            elements.pauseBtn.style.display = 'none';
+            elements.nextBtn.disabled = false;
+            elements.memberBadge.textContent = 'Completed';
+            elements.actionText.textContent = 'Email delivery and retrieval simulation complete.';
+            break;
+        }
     }
 }
 
-// Move Envelope smoothly across the nodes
-function moveEnvelope(stepIndex) {
-    const percentages = ['4%', '27%', '50%', '73%', '96%'];
-    elements.envelope.style.left = percentages[stepIndex] || '4%';
-}
+// Update Visual Nodes, Timeline, and Centered Envelope Position
+function updateVisualStage(stepIndex) {
+    // Update narration
+    const narration = narrationData[stepIndex];
+    if (narration) {
+        elements.memberBadge.textContent = narration.member;
+        elements.actionText.textContent = narration.text;
+    }
 
-// Highlight Active Node
-function highlightNode(nodeName) {
-    document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
-    const active = document.getElementById(`node-${nodeName}`);
-    if (active) active.classList.add('active');
-}
+    // Highlight nodes with subtle active/completed states
+    for (let i = 1; i <= state.totalSteps; i++) {
+        const node = document.getElementById(`node-${i}`);
+        if (!node) continue;
+        node.className = 'node-wrapper';
+        if (i - 1 === stepIndex) {
+            node.classList.add('active');
+        } else if (i - 1 < stepIndex) {
+            node.classList.add('completed');
+        }
+    }
 
-// Update Timeline
-function updateTimeline(stepNumber) {
-    document.querySelectorAll('.timeline-step').forEach((el, index) => {
-        if (index + 1 <= stepNumber) {
+    // Update Timeline Stepper
+    document.querySelectorAll('.timeline-step').forEach((el, idx) => {
+        if (idx <= stepIndex) {
             el.classList.add('active');
         } else {
             el.classList.remove('active');
         }
     });
+
+    // Move envelope smoothly to exact center of the active circle
+    updateEnvelopePosition(stepIndex);
 }
 
-// Logging Helper
-function addLog(text, type = 'response') {
-    if (!state.rawLogEnabled && type !== 'command' && type !== 'response') return;
+// Calculate exact center of the node circle relative to track
+function updateEnvelopePosition(stepIndex) {
+    const nodeWrapper = document.getElementById(`node-${stepIndex + 1}`);
+    const track = elements.pipelineTrack;
+    if (!nodeWrapper || !track) return;
+
+    const nodeCircle = nodeWrapper.querySelector('.node-circle');
+    const trackRect = track.getBoundingClientRect();
+    const circleRect = nodeCircle.getBoundingClientRect();
+
+    const centerX = circleRect.left - trackRect.left + (circleRect.width / 2);
+    elements.envelope.style.left = `${centerX}px`;
+}
+
+// Execute Protocol Events by Step
+async function executeStep(stepIndex) {
+    switch (stepIndex) {
+        case 0:
+            await executeStep1();
+            break;
+        case 1:
+            await executeStep2();
+            break;
+        case 2:
+            await executeStep3();
+            break;
+        case 3:
+            await executeStep4();
+            break;
+        case 4:
+            await executeStep5();
+            break;
+    }
+}
+
+// Step 1: Sender / User Agent (Member 1)
+async function executeStep1() {
+    log('Connecting to Outgoing SMTP Server on port 587 (Submission)...', 'info');
+    await sleep(250);
+    log('220 smtp.example.com ESMTP Postfix Ready');
+    await sleep(250);
+    log('EHLO client.example.com', 'command');
+    await sleep(200);
+    log('250-smtp.example.com Hello client.example.com');
+    log('250-SIZE 35882577');
+    log('250-STARTTLS');
+    log('250 OK');
+}
+
+// Step 2: Outgoing SMTP Server (Member 2)
+async function executeStep2() {
+    log(`AUTH PLAIN ${btoa('\0alice\0password')}`, 'command');
+    await sleep(200);
+    log('235 2.7.0 Authentication successful');
+    await sleep(200);
+
+    log(`MAIL FROM:<${state.message.from}>`, 'command');
+    await sleep(150);
+    log('250 2.1.0 Sender OK');
+
+    log(`RCPT TO:<${state.message.to}>`, 'command');
+    await sleep(150);
+    log('250 2.1.5 Recipient OK');
+
+    log('DATA', 'command');
+    await sleep(150);
+    log('354 Enter mail, end with "." on a line by itself');
+    log(`From: ${state.message.from}`);
+    log(`To: ${state.message.to}`);
+    log(`Subject: ${state.message.subject}`);
+    if (state.message.hasAttachment) {
+        log('Content-Type: multipart/mixed; boundary="----=_NextPart"');
+        log('Content-Type: application/pdf; name="document.pdf"');
+        log('[Base64 PDF Attachment Stream]');
+    } else {
+        log(`Body: ${state.message.body}`);
+    }
+    log('.', 'command');
+    await sleep(200);
+    log('250 2.0.0 OK: queued as 4XpQzL5mBmz2 (Stored in Spool Queue)');
+
+    const domain = state.message.to.split('@')[1] || 'example.com';
+    await sleep(250);
+    log(`[DNS] Resolving MX records for domain '${domain}'...`, 'net');
+    await sleep(200);
+    log(`[DNS] Answer: ${domain} IN MX 10 mail.${domain} (IP: 198.51.100.25)`, 'net');
+}
+
+// Step 3: Internet & Network (Member 3)
+async function executeStep3() {
+    const domain = state.message.to.split('@')[1] || 'example.com';
+    log(`[TCP] Initiating 3-way handshake from smtp.example.com to mail.${domain}:25`, 'net');
+    await sleep(250);
+    log('[TCP] SYN -> SYN-ACK -> ACK [ESTABLISHED]', 'net');
+    await sleep(200);
+    log(`[IP] Packets routed across autonomous routers to mail.${domain}`, 'net');
+    await sleep(200);
+
+    log(`220 mail.${domain} ESMTP Incoming Relay Ready`);
+    log('EHLO smtp.example.com', 'command');
+    log(`250 mail.${domain} greets smtp.example.com`);
+    log(`MAIL FROM:<${state.message.from}>`, 'command');
+    log('250 2.1.0 OK');
+    log(`RCPT TO:<${state.message.to}>`, 'command');
+    log('250 2.1.5 OK');
+    log('DATA', 'command');
+    log('354 Go ahead');
+    log('.', 'command');
+    log('250 2.0.0 Message accepted for local spool');
+}
+
+// Step 4: Recipient Server (Member 4)
+async function executeStep4() {
+    log(`[MTA] Validating recipient mailbox '${state.message.to}'... OK`, 'info');
+    await sleep(200);
+    log('[MTA] Anti-spam & antivirus checks passed (Score: 0.0/5.0)', 'info');
+    await sleep(200);
+    log('[Delivery Agent] Depositing RFC 5322 message into /var/mail/bob', 'info');
+    log('250 Delivered to mailbox storage');
+
+    // Update Server Mailbox UI
+    elements.serverBadge.textContent = 'Stored (1)';
+    elements.serverBadge.className = 'status-badge active';
+    elements.serverMailbox.innerHTML = `
+        <div class="message-box">
+            <div class="msg-subject">${escapeHtml(state.message.subject)}</div>
+            <div class="msg-meta">From: ${escapeHtml(state.message.from)}</div>
+            ${state.message.hasAttachment ? '<div style="font-size: 0.74rem; color: #2563eb; margin-top: 3px;">📎 Attachment (PDF)</div>' : ''}
+        </div>
+    `;
+}
+
+// Step 5: Receiver Client (Member 5: IMAP vs POP3)
+async function executeStep5() {
+    if (state.protocol === 'imap') {
+        await executeIMAP();
+    } else {
+        await executePOP3();
+    }
+}
+
+// IMAP Protocol Execution
+async function executeIMAP() {
+    log('[IMAP] Connecting to mail.example.com on port 993 (IMAPS)...', 'info');
+    await sleep(200);
+    log('* OK IMAP4rev1 Server Ready');
+    await sleep(150);
+    log('A1 LOGIN bob password', 'command');
+    await sleep(150);
+    log('A1 OK Logged in');
+    log('A2 SELECT INBOX', 'command');
+    log('A2 OK [READ-WRITE] INBOX selected (1 message)');
+    await sleep(150);
+    log('A3 FETCH 1 (FLAGS BODY[])', 'command');
+    log('A3 OK Fetch completed');
+    log('A4 STORE 1 +FLAGS (\\Seen)', 'command');
+    log('A4 OK Flag updated (\\Seen)');
+    log('A5 LOGOUT', 'command');
+    log('* BYE IMAP Server signing off');
+    log('[IMAP] Message synchronized to client & safely retained on server.', 'info');
+
+    // Update Client UI
+    elements.clientBadge.textContent = 'Synced (IMAP)';
+    elements.clientBadge.className = 'status-badge active';
+    elements.clientMailbox.innerHTML = `
+        <div class="message-box">
+            <div class="msg-subject">${escapeHtml(state.message.subject)}</div>
+            <div class="msg-meta">From: ${escapeHtml(state.message.from)} • Flags: \\Seen</div>
+            <div class="msg-snippet">${escapeHtml(state.message.body)}</div>
+        </div>
+    `;
+
+    // Server mailbox still holds the message
+    elements.serverBadge.textContent = 'Stored (\\Seen)';
+    elements.serverBadge.className = 'status-badge active';
+}
+
+// POP3 Protocol Execution
+async function executePOP3() {
+    log('[POP3] Connecting to mail.example.com on port 995 (POP3S)...', 'info');
+    await sleep(200);
+    log('+OK POP3 Server Ready');
+    await sleep(150);
+    log('USER bob', 'command');
+    log('+OK Password required');
+    await sleep(150);
+    log('PASS password', 'command');
+    log('+OK Logged in (1 message)');
+    log('STAT', 'command');
+    log('+OK 1 14592');
+    log('RETR 1', 'command');
+    log('+OK 14592 octets follow...');
+
+    // Update Client UI
+    elements.clientBadge.textContent = 'Downloaded (POP3)';
+    elements.clientBadge.className = 'status-badge active';
+    elements.clientMailbox.innerHTML = `
+        <div class="message-box">
+            <div class="msg-subject">${escapeHtml(state.message.subject)}</div>
+            <div class="msg-meta">From: ${escapeHtml(state.message.from)} • Local copy</div>
+            <div class="msg-snippet">${escapeHtml(state.message.body)}</div>
+        </div>
+    `;
+
+    if (state.pop3Delete) {
+        await sleep(200);
+        log('DELE 1', 'command');
+        log('+OK Message marked for deletion');
+        await sleep(150);
+        log('QUIT', 'command');
+        log('+OK Goodbye (1 message removed from server)');
+        log('[POP3] Message downloaded to device & purged from server storage.', 'info');
+
+        // Server mailbox marked deleted
+        elements.serverBadge.textContent = 'Deleted';
+        elements.serverBadge.className = 'status-badge deleted';
+        elements.serverMailbox.innerHTML = `
+            <div class="message-box" style="text-decoration: line-through; opacity: 0.5;">
+                <div class="msg-subject">${escapeHtml(state.message.subject)}</div>
+                <div class="msg-meta">Removed from server spool (DELE)</div>
+            </div>
+        `;
+    } else {
+        await sleep(150);
+        log('QUIT', 'command');
+        log('+OK Goodbye (Message preserved on server)');
+        log('[POP3] Message downloaded to device & copy preserved on server.', 'info');
+        elements.serverBadge.textContent = 'Kept copy';
+    }
+}
+
+// Terminal Logging Helper
+function log(text, type = 'response') {
     const entry = document.createElement('div');
     entry.className = type;
     entry.textContent = text;
@@ -282,259 +528,17 @@ function addLog(text, type = 'response') {
     elements.smtpLog.scrollTop = elements.smtpLog.scrollHeight;
 }
 
-function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+function clearLog() {
+    elements.smtpLog.innerHTML = '<div class="info"># Terminal ready. Log begins on transmission...</div>';
 }
 
-// ============================================================================
-// STEP 1: Sender / User Agent (Member 1) - MSG: SENT
-// ============================================================================
-async function step1Sender() {
-    elements.statusSender.classList.add('visible');
-    elements.envelopeBadge.textContent = 'MSG: SENT';
-
-    addLog(`[SENDER] Connecting to Outgoing SMTP Server on port ${state.tlsEnabled ? '587 (TLS)' : '25'}...`, 'info');
-    await wait(350 / state.speed);
-    addLog('220 smtp.example.com ESMTP Postfix Ready');
-    await wait(300 / state.speed);
-    addLog('EHLO client.example.com', 'command');
-    await wait(300 / state.speed);
-    addLog('250-smtp.example.com Hello client.example.com');
-    if (state.tlsEnabled) {
-        addLog('250-STARTTLS');
-        await wait(250 / state.speed);
-        addLog('STARTTLS', 'command');
-        await wait(250 / state.speed);
-        addLog('220 Ready to start TLS');
-        addLog('[TLS Handshake: TLSv1.3 AES-256-GCM completed]', 'net');
-    }
-    addLog('250 OK (Ready for submission)');
-}
-
-// ============================================================================
-// STEP 2: SMTP Outgoing Server (Member 2)
-// ============================================================================
-async function step2SMTP() {
-    const bubble = document.getElementById('status-mta-out');
-    bubble.textContent = 'Authenticating';
-    bubble.classList.add('visible');
-    elements.envelopeBadge.textContent = 'MSG: QUEUED';
-
-    await wait(300 / state.speed);
-    addLog(`AUTH PLAIN ${btoa('\0alice\0password')}`, 'command');
-    await wait(300 / state.speed);
-    addLog('235 Authentication successful');
-
-    await wait(250 / state.speed);
-    addLog(`MAIL FROM:<${state.message.from}>`, 'command');
-    await wait(250 / state.speed);
-    addLog('250 2.1.0 OK');
-
-    await wait(250 / state.speed);
-    addLog(`RCPT TO:<${state.message.to}>`, 'command');
-    await wait(250 / state.speed);
-    addLog('250 2.1.5 OK');
-
-    await wait(250 / state.speed);
-    addLog('DATA', 'command');
-    await wait(250 / state.speed);
-    addLog('354 End data with <CR><LF>.<CR><LF>');
-    addLog(`From: ${state.message.from}`);
-    addLog(`To: ${state.message.to}`);
-    addLog(`Subject: ${state.message.subject}`);
-    if (state.message.hasAttachment) {
-        addLog('Content-Type: multipart/mixed; boundary="boundary123"');
-        addLog('--boundary123 (Content-Type: text/plain)');
-        addLog(state.message.message);
-        addLog('--boundary123 (Content-Type: application/pdf)');
-        addLog('[Base64 PDF Attachment Stream]');
-        addLog('--boundary123--');
-    } else {
-        addLog(`Message: ${state.message.message}`);
-    }
-    addLog('.', 'command');
-
-    await wait(350 / state.speed);
-    addLog('250 2.0.0 OK: Queued in Spool');
-    bubble.textContent = 'Queued';
-
-    await wait(400 / state.speed);
-    bubble.textContent = 'DNS MX Lookup';
-    bubble.classList.add('processing');
-    const recipientDomain = state.message.to.split('@')[1] || 'example.com';
-    addLog(`[DNS] Querying MX record for '${recipientDomain}'...`, 'net');
-    await wait(400 / state.speed);
-    addLog(`[DNS] MX Found: mail.${recipientDomain} (Priority 10)`, 'net');
-    bubble.textContent = `MX: mail.${recipientDomain}`;
-}
-
-// ============================================================================
-// STEP 3: Internet & Network (Member 3)
-// ============================================================================
-async function step3Internet() {
-    const bubble = document.getElementById('status-internet');
-    bubble.textContent = 'TCP Handshake';
-    bubble.classList.add('visible', 'processing');
-    elements.envelopeBadge.textContent = 'MSG: IN TRANSIT';
-
-    addLog('[TCP] 3-Way Handshake SYN -> SYN-ACK -> ACK [ESTABLISHED]', 'net');
-    await wait(400 / state.speed);
-    bubble.textContent = 'Routing IP Packets';
-    addLog('[IP] Forwarding packets across routers to recipient mail server', 'net');
-    await wait(400 / state.speed);
-    addLog('220 mail.example.com ESMTP Incoming Relay Ready');
-    await wait(300 / state.speed);
-    addLog('EHLO smtp.example.com', 'command');
-    await wait(300 / state.speed);
-    addLog('250 mail.example.com greets smtp.example.com');
-    addLog(`MAIL FROM:<${state.message.from}>`, 'command');
-    addLog('250 OK');
-    addLog(`RCPT TO:<${state.message.to}>`, 'command');
-    addLog('250 OK');
-    addLog('DATA', 'command');
-    addLog('354 Send data');
-    addLog('.', 'command');
-    addLog('250 2.0.0 Message accepted for local spool');
-}
-
-// ============================================================================
-// STEP 4: Recipient Server (Member 4)
-// ============================================================================
-async function step4RecipientServer() {
-    const bubble = document.getElementById('status-mta-in');
-    bubble.textContent = 'Validating';
-    bubble.classList.add('visible', 'processing');
-    elements.envelopeBadge.textContent = 'MSG: DELIVERED';
-
-    addLog('[MTA] Validating recipient mailbox address...', 'info');
-    await wait(400 / state.speed);
-    addLog('[MTA] Spam check passed (Score: 0.0/5.0)', 'info');
-    await wait(400 / state.speed);
-    addLog('[Delivery Agent] Writing email to /var/mail/bob', 'info');
-
-    bubble.textContent = 'Delivered to Spool';
-    bubble.classList.remove('processing');
-    bubble.classList.add('green');
-
-    // Add to Server Mailbox
-    elements.serverMailbox.innerHTML = `
-        <div class="message-item" id="serverMsgItem">
-            <div class="subject">${escapeHtml(state.message.subject)}</div>
-            <div class="from">From: ${escapeHtml(state.message.from)}</div>
-            ${state.message.hasAttachment ? '<div style="font-size: 0.78em; color: #2563eb; font-weight: 700; margin-top: 4px;">📎 Attachment (PDF)</div>' : ''}
-        </div>
-    `;
-    elements.serverStatusLabel.textContent = '1 Message';
-    addLog('250 Delivered to recipient mailbox storage');
-}
-
-// ============================================================================
-// STEP 5: Receiver Client (Member 5: IMAP vs POP3) - MSG: RECEIVED
-// ============================================================================
-async function step5Receiver() {
-    elements.statusReceiver.classList.add('visible');
-    elements.envelopeBadge.textContent = 'MSG: RECEIVED';
-
-    if (state.protocol === 'imap') {
-        await runIMAP();
-    } else {
-        await runPOP3();
-    }
-}
-
-// IMAP Protocol Execution
-async function runIMAP() {
-    elements.syncIndicator.style.display = 'inline-block';
-    addLog(`[IMAP] Connecting to port ${state.tlsEnabled ? '993 (IMAPS)' : '143'}...`, 'info');
-    await wait(300 / state.speed);
-    addLog('* OK IMAP4rev1 Server Ready');
-    await wait(250 / state.speed);
-    addLog('A1 LOGIN bob password', 'command');
-    await wait(250 / state.speed);
-    addLog('A1 OK Logged in');
-    await wait(250 / state.speed);
-    addLog('A2 SELECT INBOX', 'command');
-    await wait(250 / state.speed);
-    addLog('A2 OK [READ-WRITE] INBOX selected (1 message)');
-    await wait(250 / state.speed);
-    addLog('A3 FETCH 1 (FLAGS BODY[])', 'command');
-    await wait(350 / state.speed);
-    addLog('A3 OK Fetch completed');
-    addLog('A4 STORE 1 +FLAGS (\\Seen)', 'command');
-    addLog('A4 OK Flag updated');
-
-    // Display in Client View (Still on server!)
-    elements.clientMailbox.innerHTML = `
-        <div class="message-item">
-            <div class="subject">${escapeHtml(state.message.subject)}</div>
-            <div class="from">From: ${escapeHtml(state.message.from)}</div>
-            <div class="body-preview">${escapeHtml(state.message.message)}</div>
-            ${state.message.hasAttachment ? '<div style="font-size: 0.78em; color: #2563eb; font-weight: 700; margin-top: 4px;">📎 Attachment (PDF)</div>' : ''}
-        </div>
-    `;
-
-    addLog('A5 LOGOUT', 'command');
-    addLog('* BYE IMAP Server signing off');
-    addLog('[IMAP] Message synchronized to client & PRESERVED on server.', 'info');
-}
-
-// POP3 Protocol Execution
-async function runPOP3() {
-    addLog(`[POP3] Connecting to port ${state.tlsEnabled ? '995 (POP3S)' : '110'}...`, 'info');
-    await wait(300 / state.speed);
-    addLog('+OK POP3 Server Ready');
-    await wait(250 / state.speed);
-    addLog('USER bob', 'command');
-    await wait(200 / state.speed);
-    addLog('+OK Password required');
-    await wait(250 / state.speed);
-    addLog('PASS password', 'command');
-    await wait(250 / state.speed);
-    addLog('+OK Logged in (1 message)');
-    await wait(200 / state.speed);
-    addLog('STAT', 'command');
-    addLog('+OK 1 14592');
-    await wait(200 / state.speed);
-    addLog('RETR 1', 'command');
-    await wait(350 / state.speed);
-    addLog('+OK Message follows');
-
-    // Download to client view
-    elements.clientMailbox.innerHTML = `
-        <div class="message-item">
-            <div class="subject">${escapeHtml(state.message.subject)}</div>
-            <div class="from">From: ${escapeHtml(state.message.from)}</div>
-            <div class="body-preview">${escapeHtml(state.message.message)}</div>
-            ${state.message.hasAttachment ? '<div style="font-size: 0.78em; color: #2563eb; font-weight: 700; margin-top: 4px;">📎 Attachment (PDF)</div>' : ''}
-        </div>
-    `;
-
-    if (state.pop3Delete) {
-        await wait(250 / state.speed);
-        addLog('DELE 1', 'command');
-        await wait(200 / state.speed);
-        addLog('+OK Message marked for deletion');
-        await wait(200 / state.speed);
-        addLog('QUIT', 'command');
-        addLog('+OK Goodbye (Message deleted from server)');
-
-        // Clear or strike out server copy
-        const srvItem = document.getElementById('serverMsgItem');
-        if (srvItem) srvItem.classList.add('deleted');
-        elements.serverStatusLabel.textContent = 'Deleted';
-        addLog('[POP3] Message downloaded to local PC & deleted from server spool.', 'info');
-    } else {
-        await wait(200 / state.speed);
-        addLog('QUIT', 'command');
-        addLog('+OK Goodbye (Message preserved on server)');
-        addLog('[POP3] Message downloaded & copy kept on server.', 'info');
-    }
+function sleep(ms) {
+    return new Promise(resolve => {
+        state.timer = setTimeout(resolve, ms);
+    });
 }
 
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
-
-// Start app
-initEventListeners();
