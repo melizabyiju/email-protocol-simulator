@@ -277,10 +277,11 @@ function updateVisualStage(stepIndex) {
 
     // Update Timeline Stepper
     document.querySelectorAll('.timeline-step').forEach((el, idx) => {
-        if (idx <= stepIndex) {
+        el.className = 'timeline-step';
+        if (idx === stepIndex) {
             el.classList.add('active');
-        } else {
-            el.classList.remove('active');
+        } else if (idx < stepIndex) {
+            el.classList.add('completed');
         }
     });
 
